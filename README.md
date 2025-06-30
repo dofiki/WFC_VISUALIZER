@@ -147,7 +147,7 @@ Each tile prefab has socket definitions indicating which socket types it can con
 
 ## Output Variations
 
-![Output](Assets/Sample%20IO/Outputs.png)
+![Output](Assets/Sample%20IO/outputs.png)
 
 ---
 
