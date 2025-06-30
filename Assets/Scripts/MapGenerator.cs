@@ -1,4 +1,6 @@
+using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class MapGenerator : MonoBehaviour
@@ -8,23 +10,41 @@ public class MapGenerator : MonoBehaviour
     public int width = 10;
     public float tileSize = 1f;
 
-
     private enum Direction { Top, Bottom, Left, Right }
 
     private List<GameObject>[,] grid;
     private bool[,] isCollapsed;
 
     private void Start()
+     {
+         InitializeGrid();
+         CollapseOneRandomCell();
+
+         while (!AllCollapsed())
+         {
+             CollapseNextCell();
+
+         }
+     }
+ 
+    /*
+    private void Start()
+    {
+        StartCoroutine(GenerateMapStepByStep());
+    }
+
+    private IEnumerator GenerateMapStepByStep()
     {
         InitializeGrid();
         CollapseOneRandomCell();
+        yield return new WaitForSeconds(0.1f); // short delay for first tile
 
         while (!AllCollapsed())
         {
             CollapseNextCell();
-       
+            yield return new WaitForSeconds(0.1f); // delay between each tile spawn
         }
-    }
+    }*/
 
     void InitializeGrid()
     {
@@ -122,19 +142,15 @@ public class MapGenerator : MonoBehaviour
         if (nx < 0 || nx >= width || ny < 0 || ny >= height) return;
         if (isCollapsed[nx, ny]) return;
 
-        // list of tile aka prefabs 
+ 
         List<GameObject> possibleTiles = grid[nx, ny];
         int beforeCount = possibleTiles.Count;
 
-        // for each tile in possibleTiles remove if condition is matched
         possibleTiles.RemoveAll(tile =>
         {
             var comp = tile.GetComponent<BaseTile>();
             List<SocketType> socket = GetSocketList(comp, neighborSocketSide);
-            //So for each type in socket, it checks:
-            //“Is this socket type found in the requiredMatch list ?”
-            //If yes, .Exists() returns true. i.e it is not removed aka the return false (!true):
-            return !socket.Exists(type => requiredMatch.Contains(type));
+            return !(socket.Count == requiredMatch.Count && !socket.Except(requiredMatch).Any());
         });
 
         if (possibleTiles.Count == 0) {
